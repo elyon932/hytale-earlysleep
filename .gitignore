@@ -1,0 +1,4 @@
+HytaleServer.jar
+.vscode/
+target/
+libs/*.jar
