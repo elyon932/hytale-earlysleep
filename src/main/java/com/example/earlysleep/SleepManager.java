@@ -26,6 +26,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +41,7 @@ public class SleepManager {
    private int lastSleepingCount = 0;
    public boolean loadMessageEnabled = true;
    public boolean sleepEffectsEnabled = true;
+   private final Map<UUID, Class<?>> lastState = new ConcurrentHashMap();
    private final File configFile = new File("plugins/EarlySleep/config.json");
    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -46,7 +50,7 @@ public class SleepManager {
 
    public void init() {
       this.loadConfig();
-      this.scheduler.scheduleAtFixedRate(this::checkSleepCycles, 10L, 1L, TimeUnit.SECONDS);
+      this.scheduler.scheduleAtFixedRate(this::checkSleepCycles, 10L, 200L, TimeUnit.MILLISECONDS);
       this.scheduler.scheduleAtFixedRate(this::modifyActiveWorldSleepConfigs, 10L, 15L, TimeUnit.SECONDS);
    }
 
@@ -144,12 +148,6 @@ public class SleepManager {
          }
 
          Store<EntityStore> store = entityStore.getStore();
-         WorldTimeResource timeRes = (WorldTimeResource)store.getResource(WorldTimeResource.getResourceType());
-         SleepConfig sleepConfig = world.getGameplayConfig().getWorldConfig().getSleepConfig();
-         if (sleepConfig != null && !sleepConfig.isWithinSleepHoursRange(LocalDateTime.ofInstant(timeRes.getGameTime(), ZoneOffset.UTC))) {
-            return;
-         }
-
          WorldSomnolence worldSom = (WorldSomnolence)store.getResource(WorldSomnolence.getResourceType());
          if (worldSom == null || worldSom.getState() instanceof WorldSlumber) {
             return;
@@ -159,14 +157,20 @@ public class SleepManager {
          int totalOnline = players.size();
          int sleepingCount = 0;
          StringBuilder awakePlayers = new StringBuilder();
-         long currentDelay = this.sleepDelay == -1L ? (this.getGlobalPlayerCount() == 1 ? 3000L : 0L) : this.sleepDelay;
+         long currentDelay = this.sleepDelay == -1L ? (this.getGlobalPlayerCount() == 1 ? 4000L : 0L) : this.sleepDelay;
 
          for(PlayerRef p : players) {
             Ref<EntityStore> ref = p.getReference();
             if (ref != null) {
                PlayerSomnolence som = (PlayerSomnolence)store.getComponent(ref, PlayerSomnolence.getComponentType());
-               boolean isSleeping = false;
-               if (som != null) {
+               if (som != null && som.getSleepState() != null) {
+                  Class<?> currentClass = som.getSleepState().getClass();
+                  Class<?> previousClass = (Class)this.lastState.put(p.getUuid(), currentClass);
+                  if (this.sleepEffectsEnabled && previousClass != null && previousClass != currentClass && currentClass == PlayerSleep.MorningWakeUp.class) {
+                     this.applySleepBuffs(ref, store);
+                  }
+
+                  boolean isSleeping = false;
                   if (som.getSleepState() instanceof PlayerSleep.Slumber) {
                      isSleeping = true;
                   } else {
@@ -178,16 +182,16 @@ public class SleepManager {
                         }
                      }
                   }
-               }
 
-               if (isSleeping) {
-                  ++sleepingCount;
-               } else {
-                  if (awakePlayers.length() > 0) {
-                     awakePlayers.append(", ");
+                  if (isSleeping) {
+                     ++sleepingCount;
+                  } else {
+                     if (awakePlayers.length() > 0) {
+                        awakePlayers.append(", ");
+                     }
+
+                     awakePlayers.append(p.getUsername());
                   }
-
-                  awakePlayers.append(p.getUsername());
                }
             }
          }
@@ -206,6 +210,28 @@ public class SleepManager {
 
    }
 
+   private void applySleepBuffs(Ref<EntityStore> ref, Store<EntityStore> store) {
+      EntityStatMap stats = (EntityStatMap)store.getComponent(ref, EntityStatMap.getComponentType());
+      if (stats != null) {
+         stats.maximizeStatValue(DefaultEntityStatTypes.getHealth());
+         stats.maximizeStatValue(DefaultEntityStatTypes.getStamina());
+      }
+
+      EffectControllerComponent effectController = (EffectControllerComponent)store.getComponent(ref, EffectControllerComponent.getComponentType());
+      if (effectController != null) {
+         EntityEffect healthRegen = (EntityEffect)EntityEffect.getAssetMap().getAsset("Food_Health_Regen_Small");
+         if (healthRegen != null) {
+            effectController.addEffect(ref, healthRegen, 15.0F, OverlapBehavior.OVERWRITE, store);
+         }
+
+         EntityEffect staminaRegen = (EntityEffect)EntityEffect.getAssetMap().getAsset("Potion_Stamina_Regen");
+         if (staminaRegen != null) {
+            effectController.addEffect(ref, staminaRegen, 5.0F, OverlapBehavior.OVERWRITE, store);
+         }
+      }
+
+   }
+
    private void triggerSlumber(Store<EntityStore> store, World world) {
       WorldTimeResource timeRes = (WorldTimeResource)store.getResource(WorldTimeResource.getResourceType());
       if (timeRes != null) {
@@ -217,27 +243,6 @@ public class SleepManager {
             if (ref != null) {
                PlayerSomnolence som = (PlayerSomnolence)store.getComponent(ref, PlayerSomnolence.getComponentType());
                if (som != null && (som.getSleepState() instanceof PlayerSleep.NoddingOff || som.getSleepState() instanceof PlayerSleep.Slumber)) {
-                  if (this.sleepEffectsEnabled) {
-                     EntityStatMap stats = (EntityStatMap)store.getComponent(ref, EntityStatMap.getComponentType());
-                     if (stats != null) {
-                        stats.maximizeStatValue(DefaultEntityStatTypes.getHealth());
-                        stats.maximizeStatValue(DefaultEntityStatTypes.getStamina());
-                     }
-
-                     EffectControllerComponent effectController = (EffectControllerComponent)store.getComponent(ref, EffectControllerComponent.getComponentType());
-                     if (effectController != null) {
-                        EntityEffect healthRegen = (EntityEffect)EntityEffect.getAssetMap().getAsset("Food_Health_Regen_Small");
-                        if (healthRegen != null) {
-                           effectController.addEffect(ref, healthRegen, 15.0F, OverlapBehavior.OVERWRITE, store);
-                        }
-
-                        EntityEffect staminaRegen = (EntityEffect)EntityEffect.getAssetMap().getAsset("Potion_Stamina_Regen");
-                        if (staminaRegen != null) {
-                           effectController.addEffect(ref, staminaRegen, 5.0F, OverlapBehavior.OVERWRITE, store);
-                        }
-                     }
-                  }
-
                   store.putComponent(ref, PlayerSomnolence.getComponentType(), new PlayerSomnolence(new PlayerSleep.MorningWakeUp(wakeUpInstant)));
                }
             }

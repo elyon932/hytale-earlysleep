@@ -1,8 +1,8 @@
 {
   "Group": "ElyonMods",
   "Name": "EarlySleep",
-  "Version": "3.0.0",
-  "Description": "Allows to sleep and wake up whenever you want. Enables skipping the night based on configurable player percentages or fixed amounts.",
+  "Version": "3.0.2",
+  "Description": "Personalize sleep routines, define player limits, and wake with Health and Stamina boost.",
   "Authors": [
     {
       "Name": "elyon932"

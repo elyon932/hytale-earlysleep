@@ -87,7 +87,7 @@ public class SleepManagerCommand extends CommandBase {
 
    private void handleDelay(CommandContext context, String[] parts) {
       if (parts.length >= 3 && parts[2].equalsIgnoreCase("status")) {
-         long current = this.manager.sleepDelay == -1L ? (this.manager.getGlobalPlayerCount() == 1 ? 3000L : 0L) : this.manager.sleepDelay;
+         long current = this.manager.sleepDelay == -1L ? (this.manager.getGlobalPlayerCount() == 1 ? 4000L : 0L) : this.manager.sleepDelay;
          String mode = this.manager.sleepDelay == -1L ? " (Auto)" : "";
          context.sendMessage(Message.raw("[EarlySleep] Current sleep delay: " + current + "ms" + mode).color(Color.YELLOW));
       } else if (parts.length < 3) {
@@ -95,8 +95,8 @@ public class SleepManagerCommand extends CommandBase {
       } else {
          try {
             long value = Long.parseLong(parts[2]);
-            if (value < 0L || value > 3000L) {
-               context.sendMessage(Message.raw("[EarlySleep] Delay must be between 0 and 3000ms.").color(Color.RED));
+            if (value < 0L || value > 4000L) {
+               context.sendMessage(Message.raw("[EarlySleep] Delay must be between 0 and 4000ms.").color(Color.RED));
                return;
             }
 
@@ -179,7 +179,7 @@ public class SleepManagerCommand extends CommandBase {
       context.sendMessage(Message.raw("/sm sleep <HH:mm> - Set start sleep time.").color(Color.YELLOW));
       context.sendMessage(Message.raw("/sm wake <HH:mm> - Set wake up time.").color(Color.YELLOW));
       context.sendMessage(Message.raw("/sm player <val/%> - Set sleep requirements.").color(Color.YELLOW));
-      context.sendMessage(Message.raw("/sm delay <ms> - Set transition delay (0-3000).").color(Color.YELLOW));
+      context.sendMessage(Message.raw("/sm delay <ms> - Set transition delay (0-4000).").color(Color.YELLOW));
       context.sendMessage(Message.raw("/sm loadmsg <on/off> - Toggle mod load message.").color(Color.YELLOW));
       context.sendMessage(Message.raw("/sm effects <on/off> - Toggle heal/stamina on wake up.").color(Color.YELLOW));
       context.sendMessage(Message.raw("/sm sleep status - Show current sleep start time.").color(Color.YELLOW));
