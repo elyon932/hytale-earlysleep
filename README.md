@@ -6,7 +6,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-2.1.0-green?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.0.0-green?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge)
 
@@ -16,24 +16,26 @@
 
 ## Overview
 
-EarlySleep is a server-side mod for Hytale that provides control over when players are allowed to sleep and wake up, as well as how many players are required to skip the night.
+EarlySleep is a server-side mod for Hytale that controls when players can sleep, wake up, and how night skipping behaves.
 
-By default, sleep behavior is restricted to predefined in-game hours. This mod extends that functionality by allowing server administrators to define custom sleep and wake times, making the experience more flexible and better suited to different gameplay styles, while integrating seamlessly with Hytale's native sleep system across all active worlds.
+In addition to configurable sleep schedules and player requirements, the mod enhances the wake-up experience by fully restoring player health and stamina, and applying temporary regeneration effects.
 
-The default sleep window is set from 19:30 (7:30 PM) to 05:30 (5:30 AM), requiring 50% of online players to be in bed. All values are fully customizable via commands.
+The system includes a dynamic night transition, adapting delay automatically based on player count, while remaining fully synchronized with Hytale's native sleep mechanics across all active worlds.
 
 ## Features
 
-- Unified command system via `/sm`
-- Configure custom sleep and wake times (`HH:mm`)
-- Adjustable night skip delay (1000–4000 ms)
-- Configure minimum players required to skip the night (percentage or fixed value)
-- In-game help menu (`/sm help`)
-- Persistent configuration stored in `config.json`
-- Applies settings globally across all worlds
-- Real-time updates without requiring server restarts
+- Unified command system
+- Custom sleep and wake time configuration (`HH:mm`)
+- Configurable player requirement (percentage or fixed value)
+- Dynamic night skip system with automatic delay handling
+- Full health and stamina recovery on wake up
+- Temporary regeneration effect after waking
+- In-game help and status commands
+- Persistent configuration via `config.json`
+- Real-time updates without server restarts
+- Global application across all worlds
+- Multiplayer sleep/wake notifications
 - Lightweight and server-side only
-- Initialization notification on server startup
 
 ## Commands
 
@@ -108,14 +110,15 @@ libs/HytaleServer.jar
 
 ## Changelog
 
-### 2.1.0
-- Unified command system via `/sm`
-- Added custom sleep and wake commands
-- Added configurable delay for night skip
-- Added in-game help menu
-- Persistent configuration via config.json
-- Improved command naming
-- Added initialization notification message
+### 3.0.0
+- Refactored to a modular architecture (Main/Manager/Command separation)
+- Added full health and stamina recovery on wake up
+- Added temporary regeneration effect after waking
+- Implemented dynamic delay system based on player count
+- Extended status command with sleep, wake, and delay information
+- Added multiplayer notifications for sleep and wake events
+- Fixed @Nonnull reference issues
+- Fixed JSON parsing for numeric values
 
 ## Author
 
