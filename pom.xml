@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>EarlySleep-SM</artifactId>
-    <version>3.0.2</version>
+    <artifactId>EarlySleep-SM-LTS</artifactId>
+    <version>3.0.4</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -46,7 +46,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Mod-Name>EarlySleep-SM</Mod-Name>
+                            <Mod-Name>EarlySleep-SM-LTS</Mod-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>

@@ -30,6 +30,6 @@ public class Main extends JavaPlugin {
                   }));
             }
          }
-      }, 10L, TimeUnit.SECONDS);
+      }, 20L, TimeUnit.SECONDS);
    }
 }

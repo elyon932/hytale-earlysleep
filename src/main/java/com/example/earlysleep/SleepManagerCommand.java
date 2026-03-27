@@ -71,24 +71,29 @@ public class SleepManagerCommand extends CommandBase {
       if (parts.length < 3) {
          this.sendUsage(context, parts[1]);
       } else {
-         boolean val = parts[2].equals("on");
-         if (type.equals("loadMessage")) {
-            this.manager.loadMessageEnabled = val;
+         String input = parts[2].toLowerCase();
+         if (!input.equals("on") && !input.equals("off") && !input.equals("true") && !input.equals("false")) {
+            context.sendMessage(Message.raw("[EarlySleep] Use 'on' or 'off'.").color(Color.RED));
          } else {
-            this.manager.sleepEffectsEnabled = val;
-         }
+            boolean val = input.equals("on") || input.equals("true");
+            if (type.equals("loadMessage")) {
+               this.manager.loadMessageEnabled = val;
+            } else {
+               this.manager.sleepEffectsEnabled = val;
+            }
 
-         this.manager.saveConfig((double)-1.0F, (double)-1.0F);
-         String state = val ? "ENABLED" : "DISABLED";
-         String var10001 = parts[1].toUpperCase();
-         context.sendMessage(Message.raw("[EarlySleep] " + var10001 + " is now: " + state).color(val ? Color.GREEN : Color.RED));
+            this.manager.saveConfig((double)-1.0F, (double)-1.0F);
+            String state = val ? "ENABLED" : "DISABLED";
+            String var10001 = parts[1].toUpperCase();
+            context.sendMessage(Message.raw("[EarlySleep] " + var10001 + " is now: " + state).color(val ? Color.GREEN : Color.RED));
+         }
       }
    }
 
    private void handleDelay(CommandContext context, String[] parts) {
       if (parts.length >= 3 && parts[2].equalsIgnoreCase("status")) {
          long current = this.manager.sleepDelay == -1L ? (this.manager.getGlobalPlayerCount() == 1 ? 4000L : 0L) : this.manager.sleepDelay;
-         String mode = this.manager.sleepDelay == -1L ? " (Auto)" : "";
+         String mode = this.manager.sleepDelay == -1L ? " (Auto)" : " (Manual)";
          context.sendMessage(Message.raw("[EarlySleep] Current sleep delay: " + current + "ms" + mode).color(Color.YELLOW));
       } else if (parts.length < 3) {
          this.sendUsage(context, "delay");
@@ -104,7 +109,7 @@ public class SleepManagerCommand extends CommandBase {
             this.manager.saveConfig((double)-1.0F, (double)-1.0F);
             context.sendMessage(Message.raw("[EarlySleep] Sleep delay set to: " + value + "ms").color(Color.GREEN));
          } catch (NumberFormatException var6) {
-            context.sendMessage(Message.raw("[EarlySleep] Invalid number format.").color(Color.RED));
+            context.sendMessage(Message.raw("[EarlySleep] Invalid number. Use a value between 0 and 4000.").color(Color.RED));
          }
 
       }
@@ -137,10 +142,18 @@ public class SleepManagerCommand extends CommandBase {
 
    private double parseTimeToDouble(String s) {
       try {
-         String[] p = s.split(":");
-         int h = Integer.parseInt(p[0]);
-         int m = Integer.parseInt(p[1]);
-         return h >= 0 && h <= 23 && m >= 0 && m <= 59 ? (double)h + (double)m / (double)60.0F : (double)-1.0F;
+         if (!s.contains(":")) {
+            return (double)-1.0F;
+         } else {
+            String[] p = s.split(":");
+            if (p.length < 2) {
+               return (double)-1.0F;
+            } else {
+               int h = Integer.parseInt(p[0]);
+               int m = Integer.parseInt(p[1]);
+               return h >= 0 && h <= 23 && m >= 0 && m <= 59 ? (double)h + (double)m / (double)60.0F : (double)-1.0F;
+            }
+         }
       } catch (Exception var5) {
          return (double)-1.0F;
       }
@@ -151,9 +164,30 @@ public class SleepManagerCommand extends CommandBase {
          this.sendUsage(context, "player");
       } else {
          String raw = parts[2];
-         this.manager.sleepThreshold = raw;
-         this.manager.saveConfig((double)-1.0F, (double)-1.0F);
-         context.sendMessage(Message.raw("[EarlySleep] Minimum requirement set to: " + raw).color(Color.GREEN));
+         int online = this.manager.getGlobalPlayerCount();
+
+         try {
+            if (raw.endsWith("%")) {
+               int pct = Integer.parseInt(raw.replace("%", ""));
+               if (pct < 0 || pct > 100) {
+                  context.sendMessage(Message.raw("[EarlySleep] Percentage must be between 0 and 100%.").color(Color.RED));
+                  return;
+               }
+            } else {
+               int abs = Integer.parseInt(raw);
+               if (abs < 1 || abs > online) {
+                  context.sendMessage(Message.raw("[EarlySleep] Value must be between 1 and " + online + " (players online).").color(Color.RED));
+                  return;
+               }
+            }
+
+            this.manager.sleepThreshold = raw;
+            this.manager.saveConfig((double)-1.0F, (double)-1.0F);
+            context.sendMessage(Message.raw("[EarlySleep] Minimum requirement set to: " + raw).color(Color.GREEN));
+         } catch (NumberFormatException var6) {
+            context.sendMessage(Message.raw("[EarlySleep] Invalid format. Use numbers (e.g. 2) or percentage (e.g. 50%).").color(Color.RED));
+         }
+
       }
    }
 

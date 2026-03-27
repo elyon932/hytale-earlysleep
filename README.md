@@ -25,16 +25,19 @@ The system includes a dynamic night transition, adapting delay automatically bas
 ## Features
 
 - Unified command system
-- Custom sleep and wake time configuration (`HH:mm`)
-- Configurable player requirement (percentage or fixed value)
-- Dynamic night skip system with automatic delay handling
-- Full health and stamina recovery on wake up
-- Temporary regeneration effect after waking
-- In-game help and status commands
-- Persistent configuration via `config.json`
-- Real-time updates without server restarts
-- Global application across all worlds
+- Custom sleep and wake configuration (`HH:mm`)
+- Configurable player requirement (percentage or fixed)
+- Dynamic night skip system
+- Wake-up boosts (health, stamina, regeneration)
+
+- Persistent configuration (`config.json`)
+- Real-time updates (no restart required)
+- Multi-world support
 - Multiplayer sleep/wake notifications
+
+- Improved stability and performance
+- Automatic cleanup of offline player data
+- Enhanced command validation
 - Lightweight and server-side only
 
 ## Commands
@@ -110,10 +113,12 @@ libs/HytaleServer.jar
 
 ## Changelog
 
-### 3.0.2
-- Fixed issue where wake-up boosts failed on consecutive applications
-- Improved player state detection frequency (200ms)
-- Stabilized synchronization between delay system and native sleep flow
+### 3.0.4
+- Fixed critical issues affecting stability
+- Improved long-term server stability and performance
+- Added automatic cleanup of offline player data to prevent memory leaks
+- Fixed multi-world broadcast conflicts
+- Added strict validation for command inputs
 
 ## Author
 

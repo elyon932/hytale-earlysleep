@@ -26,7 +26,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -38,7 +40,7 @@ public class SleepManager {
    public double wakeUpTime = (double)5.5F;
    public String sleepThreshold = "50%";
    public long sleepDelay = -1L;
-   private int lastSleepingCount = 0;
+   private final Map<World, Integer> lastWorldSleepingCount = new ConcurrentHashMap();
    public boolean loadMessageEnabled = true;
    public boolean sleepEffectsEnabled = true;
    private final Map<UUID, Class<?>> lastState = new ConcurrentHashMap();
@@ -133,6 +135,8 @@ public class SleepManager {
    private void checkSleepCycles() {
       Universe universe = Universe.get();
       if (universe != null) {
+         this.lastWorldSleepingCount.keySet().retainAll(universe.getWorlds().values());
+
          for(World world : universe.getWorlds().values()) {
             world.execute(() -> this.checkWorldSleep(world));
          }
@@ -148,13 +152,24 @@ public class SleepManager {
          }
 
          Store<EntityStore> store = entityStore.getStore();
+         Collection<PlayerRef> players = world.getPlayerRefs();
+         Set<UUID> currentUuids = new HashSet();
+
+         for(PlayerRef p : players) {
+            currentUuids.add(p.getUuid());
+         }
+
+         this.lastState.keySet().retainAll(currentUuids);
          WorldSomnolence worldSom = (WorldSomnolence)store.getResource(WorldSomnolence.getResourceType());
          if (worldSom == null || worldSom.getState() instanceof WorldSlumber) {
             return;
          }
 
-         Collection<PlayerRef> players = world.getPlayerRefs();
          int totalOnline = players.size();
+         if (totalOnline == 0) {
+            return;
+         }
+
          int sleepingCount = 0;
          StringBuilder awakePlayers = new StringBuilder();
          long currentDelay = this.sleepDelay == -1L ? (this.getGlobalPlayerCount() == 1 ? 4000L : 0L) : this.sleepDelay;
@@ -174,9 +189,9 @@ public class SleepManager {
                   if (som.getSleepState() instanceof PlayerSleep.Slumber) {
                      isSleeping = true;
                   } else {
-                     PlayerSleep var19 = som.getSleepState();
-                     if (var19 instanceof PlayerSleep.NoddingOff) {
-                        PlayerSleep.NoddingOff nodding = (PlayerSleep.NoddingOff)var19;
+                     PlayerSleep var20 = som.getSleepState();
+                     if (var20 instanceof PlayerSleep.NoddingOff) {
+                        PlayerSleep.NoddingOff nodding = (PlayerSleep.NoddingOff)var20;
                         if (Instant.now().isAfter(nodding.realTimeStart().plusMillis(currentDelay))) {
                            isSleeping = true;
                         }
@@ -197,15 +212,16 @@ public class SleepManager {
          }
 
          int required = this.sleepThreshold.endsWith("%") ? (int)Math.ceil((double)(Integer.parseInt(this.sleepThreshold.replace("%", "")) * totalOnline) / (double)100.0F) : Integer.parseInt(this.sleepThreshold);
-         if (totalOnline > 1 && sleepingCount > this.lastSleepingCount) {
+         int lastCount = (Integer)this.lastWorldSleepingCount.getOrDefault(world, 0);
+         if (totalOnline > 1 && sleepingCount > lastCount) {
             SleepManagerCommand.broadcastSleepStatus(players, sleepingCount, required, awakePlayers.toString());
          }
 
-         this.lastSleepingCount = sleepingCount;
+         this.lastWorldSleepingCount.put(world, sleepingCount);
          if (sleepingCount >= required && sleepingCount > 0) {
             this.triggerSlumber(store, world);
          }
-      } catch (Exception var20) {
+      } catch (Exception var21) {
       }
 
    }
