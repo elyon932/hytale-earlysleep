@@ -6,7 +6,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-3.0.0-green?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.0.2-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge)
 
@@ -110,15 +110,10 @@ libs/HytaleServer.jar
 
 ## Changelog
 
-### 3.0.0
-- Refactored to a modular architecture (Main/Manager/Command separation)
-- Added full health and stamina recovery on wake up
-- Added temporary regeneration effect after waking
-- Implemented dynamic delay system based on player count
-- Extended status command with sleep, wake, and delay information
-- Added multiplayer notifications for sleep and wake events
-- Fixed @Nonnull reference issues
-- Fixed JSON parsing for numeric values
+### 3.0.2
+- Fixed issue where wake-up boosts failed on consecutive applications
+- Improved player state detection frequency (200ms)
+- Stabilized synchronization between delay system and native sleep flow
 
 ## Author
 
