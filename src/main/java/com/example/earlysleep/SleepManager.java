@@ -152,6 +152,18 @@ public class SleepManager {
          }
 
          Store<EntityStore> store = entityStore.getStore();
+         WorldTimeResource timeRes = (WorldTimeResource)store.getResource(WorldTimeResource.getResourceType());
+         if (timeRes == null) {
+            return;
+         }
+
+         LocalDateTime now = LocalDateTime.ofInstant(timeRes.getGameTime(), ZoneOffset.UTC);
+         double currentHour = (double)now.getHour() + (double)now.getMinute() / (double)60.0F;
+         boolean isNightTime = currentHour >= this.sleepStart || currentHour < this.wakeUpTime;
+         if (!isNightTime) {
+            return;
+         }
+
          Collection<PlayerRef> players = world.getPlayerRefs();
          Set<UUID> currentUuids = new HashSet();
 
@@ -189,9 +201,9 @@ public class SleepManager {
                   if (som.getSleepState() instanceof PlayerSleep.Slumber) {
                      isSleeping = true;
                   } else {
-                     PlayerSleep var20 = som.getSleepState();
-                     if (var20 instanceof PlayerSleep.NoddingOff) {
-                        PlayerSleep.NoddingOff nodding = (PlayerSleep.NoddingOff)var20;
+                     PlayerSleep var25 = som.getSleepState();
+                     if (var25 instanceof PlayerSleep.NoddingOff) {
+                        PlayerSleep.NoddingOff nodding = (PlayerSleep.NoddingOff)var25;
                         if (Instant.now().isAfter(nodding.realTimeStart().plusMillis(currentDelay))) {
                            isSleeping = true;
                         }
@@ -221,7 +233,7 @@ public class SleepManager {
          if (sleepingCount >= required && sleepingCount > 0) {
             this.triggerSlumber(store, world);
          }
-      } catch (Exception var21) {
+      } catch (Exception var26) {
       }
 
    }
