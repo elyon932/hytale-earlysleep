@@ -6,7 +6,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>EarlySleep-SM-LTS</artifactId>
-    <version>3.0.4</version>
+    <version>3.0.5</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

@@ -6,7 +6,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-3.0.4-brightgreen?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.0.5-LTS-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge)
 
@@ -18,7 +18,7 @@
 
 EarlySleep is a server-side mod for Hytale that controls when players can sleep, wake up, and how night skipping behaves.
 
-In addition to configurable sleep schedules and player requirements, the mod enhances the wake-up experience by fully restoring player health and stamina, and applying temporary regeneration effects.
+In addition to configurable sleep schedules and player requirements, the mod enhances the wake-up experience by fully restoring player health and stamina, and applying temporary wake-up boosts.
 
 The system includes a dynamic night transition, adapting delay automatically based on player count, while remaining fully synchronized with Hytale's native sleep mechanics across all active worlds.
 
@@ -113,12 +113,8 @@ libs/HytaleServer.jar
 
 ## Changelog
 
-### 3.0.4
-- Fixed critical issues affecting stability
-- Improved long-term server stability and performance
-- Added automatic cleanup of offline player data to prevent memory leaks
-- Fixed multi-world broadcast conflicts
-- Added strict validation for command inputs
+### 3.0.5-LTS
+- Fixed an issue that allowed players to sleep at any time
 
 ## Author
 
