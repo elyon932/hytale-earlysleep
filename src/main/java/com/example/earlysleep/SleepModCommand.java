@@ -1,19 +1,18 @@
 package com.example.earlysleep;
 
 import com.hypixel.hytale.server.core.Message;
-import com.hypixel.hytale.server.core.asset.type.gameplay.SleepConfig;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
-import com.hypixel.hytale.server.core.universe.Universe;
-import com.hypixel.hytale.server.core.universe.world.World;
 import java.awt.Color;
-import java.lang.reflect.Field;
 import java.util.Locale;
 import javax.annotation.Nonnull;
 
 public class SleepModCommand extends CommandBase {
+   private final Main plugin;
+
    public SleepModCommand(Main plugin, String name) {
       super(name, "Controls the server sleep schedule", false);
+      this.plugin = plugin;
       this.setAllowsExtraArguments(true);
    }
 
@@ -21,70 +20,27 @@ public class SleepModCommand extends CommandBase {
       String input = context.getInputString();
       String normalized = input == null ? "" : input.toLowerCase(Locale.ROOT).trim();
       String[] parts = normalized.isEmpty() ? new String[0] : normalized.split("\\s+");
+      String label = parts.length > 0 ? parts[0].replace("/", "") : "sleeptime";
       if (!context.sender().hasPermission("earlysleep.admin")) {
-         context.sendMessage(Message.raw("Permission denied: You must be OP.").color(Color.RED));
+         context.sendMessage(Message.raw("Permission denied.").color(Color.RED));
       } else if (parts.length >= 3 && parts[1].equals("set")) {
-         String label = parts[0].replace("/", "");
-         if (label.equals("sleeptime")) {
-            this.handleSleepStart(context, parts[2]);
-         } else if (label.equals("waketime")) {
-            this.handleWakeTime(context, parts[2]);
-         }
-
-      } else {
-         this.sendUsage(context);
-      }
-   }
-
-   private void handleSleepStart(CommandContext context, String timeStr) {
-      double hours = this.parseTimeToDouble(timeStr);
-      if (hours < (double)0.0F) {
-         context.sendMessage(Message.raw("Invalid format. Use HH:mm (e.g., 18:40)").color(Color.RED));
-      } else {
-         this.applyToWorlds(hours, (double)-1.0F);
-         context.sendMessage(Message.raw("Sleep start time updated to: " + timeStr).color(Color.GREEN));
-      }
-   }
-
-   private void handleWakeTime(CommandContext context, String timeStr) {
-      double hours = this.parseTimeToDouble(timeStr);
-      if (hours < (double)0.0F) {
-         context.sendMessage(Message.raw("Invalid format. Use HH:mm (e.g., 05:23)").color(Color.RED));
-      } else {
-         this.applyToWorlds((double)-1.0F, hours);
-         context.sendMessage(Message.raw("Wake up time updated to: " + timeStr).color(Color.CYAN));
-      }
-   }
-
-   private void applyToWorlds(double startHour, double wakeHour) {
-      try {
-         Field rangeField = SleepConfig.class.getDeclaredField("allowedSleepHoursRange");
-         Field wakeField = SleepConfig.class.getDeclaredField("wakeUpHour");
-         rangeField.setAccessible(true);
-         wakeField.setAccessible(true);
-
-         for(World world : Universe.get().getWorlds().values()) {
-            if (world != null) {
-               SleepConfig config = world.getGameplayConfig().getWorldConfig().getSleepConfig();
-               if (config != null) {
-                  double[] range = (double[])rangeField.get(config);
-                  if (startHour >= (double)0.0F) {
-                     range[0] = startHour;
-                  }
-
-                  if (wakeHour >= (double)0.0F) {
-                     range[1] = wakeHour;
-                     wakeField.set(config, (float)wakeHour);
-                  }
-
-                  rangeField.set(config, range);
-               }
+         double hours = this.parseTimeToDouble(parts[2]);
+         if (hours < (double)0.0F) {
+            context.sendMessage(Message.raw("Invalid format (HH:mm).").color(Color.RED));
+         } else {
+            if (label.equals("sleeptime")) {
+               this.plugin.saveConfig(hours, (double)-1.0F);
+               context.sendMessage(Message.raw("Sleep time permanently set to: " + parts[2]).color(Color.GREEN));
+            } else if (label.equals("waketime")) {
+               this.plugin.saveConfig((double)-1.0F, hours);
+               context.sendMessage(Message.raw("Wake time permanently set to: " + parts[2]).color(Color.GREEN));
             }
-         }
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
 
+            this.plugin.modifyActiveWorldSleepConfigs();
+         }
+      } else {
+         this.sendUsage(context, label);
+      }
    }
 
    private double parseTimeToDouble(String timeStr) {
@@ -98,7 +54,8 @@ public class SleepModCommand extends CommandBase {
       }
    }
 
-   private void sendUsage(CommandContext context) {
-      context.sendMessage(Message.raw("Usage: /sleeptime set <HH:mm> OR /waketime set <HH:mm>").color(Color.YELLOW));
+   private void sendUsage(CommandContext context, String label) {
+      String correctCmd = label.equals("waketime") ? "/waketime set <HH:mm>" : "/sleeptime set <HH:mm>";
+      context.sendMessage(Message.raw("Usage: " + correctCmd).color(Color.RED));
    }
 }

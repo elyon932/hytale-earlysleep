@@ -6,7 +6,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.0.0--beta-purple?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-1.0.2-blue?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge)
 
@@ -22,17 +22,14 @@ By default, sleep behavior is restricted to predefined in-game hours. This mod e
 
 The mod applies these changes across all active worlds and updates the internal sleep configuration at runtime.
 
----
-
 ## Features
 
 - Configure when players can start sleeping
 - Configure when players wake up
+- Settings persist after server restart (JSON storage)
 - Apply changes globally to all worlds
 - Simple command-based control
 - Lightweight and server-side only
-
----
 
 ## Commands
 
@@ -43,8 +40,6 @@ All commands require operator permissions (`earlysleep.admin`).
 /waketime set <HH:mm>
 ```
 
----
-
 ### Examples
 
 ```bash
@@ -52,21 +47,15 @@ All commands require operator permissions (`earlysleep.admin`).
 /waketime set 05:30
 ```
 
----
-
 ### Notes
 
 - Time must be in `HH:mm` format (24-hour)
 - Invalid input will be rejected with a message
 
----
-
 ## How It Works
 
 The mod modifies the internal `SleepConfig` of each active world using reflection.  
 Changes are applied dynamically, without requiring a server restart.
-
----
 
 ## Installation
 
@@ -84,8 +73,6 @@ target/earlysleep-*.jar
 
 3. Place the `.jar` into your Hytale server's plugin/mod directory.
 
----
-
 ## Development Setup
 
 This project depends on the Hytale server `.jar`, which is not included in the repository.
@@ -96,21 +83,22 @@ Place the required file at:
 libs/HytaleServer.jar
 ```
 
----
-
-## Notes
+## Technical Notes
 
 - The Hytale server jar is excluded due to size and licensing constraints
 - Reflection is used to modify internal behavior, which may break with future updates
 
----
+## Changelog
+
+### 1.0.2
+- Fixed: Sleep and wake hours now persist after player relog or server restart
+- Improved: Dynamic error messages for commands
+- Improved: Colored usage feedback for better clarity
 
 ## Author
 
 **Elyon Oliveira dos Santos**  
 Software Developer
-
----
 
 ## License
 
