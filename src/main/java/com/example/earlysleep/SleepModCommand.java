@@ -41,6 +41,7 @@ public class SleepModCommand extends CommandBase {
       } else {
          this.sendUsage(context, label);
       }
+
    }
 
    private double parseTimeToDouble(String timeStr) {

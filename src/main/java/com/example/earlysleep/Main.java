@@ -14,8 +14,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class Main extends JavaPlugin {
-   private double sleepStart = (double)19.0F;
-   private double wakeUpTime = (double)5.5F;
+   public double sleepStart = (double)19.0F;
+   public double wakeUpTime = (double)5.5F;
+   public String sleepThreshold = "50%";
    private final File configFile = new File("plugins/EarlySleep/config.json");
 
    public Main(JavaPluginInit init) {
@@ -26,6 +27,7 @@ public class Main extends JavaPlugin {
       this.loadConfig();
       this.getCommandRegistry().registerCommand(new SleepModCommand(this, "sleeptime"));
       this.getCommandRegistry().registerCommand(new SleepModCommand(this, "waketime"));
+      this.getCommandRegistry().registerCommand(new MinimumPlayerSleep(this));
       Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this::modifyActiveWorldSleepConfigs, 10L, 15L, TimeUnit.SECONDS);
       System.err.println("[EarlySleep] Plugin initialized with persistent config.");
    }
@@ -37,12 +39,15 @@ public class Main extends JavaPlugin {
          try {
             String content = new String(Files.readAllBytes(this.configFile.toPath()));
             this.sleepStart = Double.parseDouble(content.split("\"sleepStart\":")[1].split(",")[0].trim());
-            this.wakeUpTime = Double.parseDouble(content.split("\"wakeUpTime\":")[1].split("}")[0].trim());
+            this.wakeUpTime = Double.parseDouble(content.split("\"wakeUpTime\":")[1].split(",")[0].trim());
+            if (content.contains("\"sleepThreshold\":")) {
+               this.sleepThreshold = content.split("\"sleepThreshold\":")[1].split("\"")[1].trim();
+            }
          } catch (Exception var2) {
             System.err.println("[EarlySleep] Failed to load config.json, using defaults.");
          }
-
       }
+
    }
 
    public void saveConfig(double start, double wake) {
@@ -59,10 +64,10 @@ public class Main extends JavaPlugin {
             this.configFile.getParentFile().mkdirs();
          }
 
-         String json = "{\n  \"sleepStart\": " + this.sleepStart + ",\n  \"wakeUpTime\": " + this.wakeUpTime + "\n}";
+         String json = "{\n  \"sleepStart\": " + this.sleepStart + ",\n  \"wakeUpTime\": " + this.wakeUpTime + ",\n  \"sleepThreshold\": \"" + this.sleepThreshold + "\"\n}";
          Files.write(this.configFile.toPath(), json.getBytes(), new OpenOption[0]);
-      } catch (IOException e) {
-         e.printStackTrace();
+      } catch (IOException var6) {
+         var6.printStackTrace();
       }
 
    }
