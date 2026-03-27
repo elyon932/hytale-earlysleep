@@ -6,7 +6,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-3.0.5-LTS-brightgreen?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.0.5_LTS-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge)
 
@@ -39,6 +39,7 @@ The system includes a dynamic night transition, adapting delay automatically bas
 - Automatic cleanup of offline player data
 - Enhanced command validation
 - Lightweight and server-side only
+
 
 ## Commands
 
