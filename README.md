@@ -6,7 +6,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-3.0.5_LTS-brightgreen?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.0.6-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge)
 
@@ -114,8 +114,8 @@ libs/HytaleServer.jar
 
 ## Changelog
 
-### 3.0.5-LTS
-- Fixed an issue that allowed players to sleep at any time
+### 3.0.6
+- Fixed outdated SleepConfig import to match Hytale API
 
 ## Author
 

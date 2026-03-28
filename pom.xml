@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>EarlySleep-SM-LTS</artifactId>
-    <version>3.0.5</version>
+    <artifactId>EarlySleep-SM</artifactId>
+    <version>3.0.6</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
