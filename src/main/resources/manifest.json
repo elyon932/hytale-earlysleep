@@ -1,15 +1,15 @@
 {
   "Group": "ElyonMods",
   "Name": "EarlySleep",
-  "Version": "3.0.6",
+  "Version": "3.0.7",
   "Description": "Personalize sleep routines, define player limits, and wake with Health and Stamina boost.",
   "Authors": [
     {
       "Name": "elyon932"
     }
   ],
-  "Website": "https://github.com/ElyonSantos",
-  "ServerVersion": "*",
+  "Website": "https://github.com/elyon932/hytale-earlysleep",
+  "ServerVersion": "2026.03.26-89796e57b",
   "Dependencies": {
     "Hytale:EntityModule": "*"
   },

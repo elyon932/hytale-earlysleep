@@ -114,8 +114,8 @@ libs/HytaleServer.jar
 
 ## Changelog
 
-### 3.0.6
-- Fixed outdated SleepConfig import to match Hytale API
+### 3.0.7
+- Decouple sleep effects and refactor time parsing
 
 ## Author
 
