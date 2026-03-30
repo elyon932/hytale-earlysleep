@@ -117,45 +117,47 @@ public class SleepManagerCommand extends CommandBase {
 
    private void handleTimeChange(CommandContext context, String timeStr, boolean isSleep) {
       double hours = this.parseTimeToDouble(timeStr);
+      
       if (timeStr.equalsIgnoreCase("status")) {
          double val = isSleep ? this.manager.sleepStart : this.manager.wakeUpTime;
-         String time = String.format("%02d:%02d", (int)val, (int)(val % (double)1.0F * (double)60.0F));
+         String time = String.format("%02d:%02d", (int)val, (int)((val % 1.0) * 60.0 + 0.5));
          String type = isSleep ? "sleep start" : "wake up";
          context.sendMessage(Message.raw("[EarlySleep] Current " + type + " time: " + time).color(Color.YELLOW));
       } else {
-         if (hours < (double)0.0F) {
-            context.sendMessage(Message.raw("[EarlySleep] Invalid format (HH:mm).").color(Color.RED));
+         if (hours < 0.0) {
+            context.sendMessage(Message.raw("[EarlySleep] Invalid format. Use HH:mm (e.g. 14:30) or Hour (0-23).").color(Color.RED));
          } else {
+            String formattedTime = String.format("%02d:%02d", (int)hours, (int)((hours % 1.0) * 60.0 + 0.5));
+            
             if (isSleep) {
-               this.manager.saveConfig(hours, (double)-1.0F);
-               context.sendMessage(Message.raw("[EarlySleep] Sleep time set to: " + timeStr).color(Color.GREEN));
+               this.manager.saveConfig(hours, -1.0);
+               context.sendMessage(Message.raw("[EarlySleep] Sleep time set to: " + formattedTime).color(Color.GREEN));
             } else {
-               this.manager.saveConfig((double)-1.0F, hours);
-               context.sendMessage(Message.raw("[EarlySleep] Wake time set to: " + timeStr).color(Color.GREEN));
+               this.manager.saveConfig(-1.0, hours);
+               context.sendMessage(Message.raw("[EarlySleep] Wake time set to: " + formattedTime).color(Color.GREEN));
             }
 
             this.manager.modifyActiveWorldSleepConfigs();
          }
-
       }
    }
 
-   private double parseTimeToDouble(String s) {
+private double parseTimeToDouble(String s) {
       try {
-         if (!s.contains(":")) {
-            return (double)-1.0F;
-         } else {
-            String[] p = s.split(":");
-            if (p.length < 2) {
-               return (double)-1.0F;
-            } else {
-               int h = Integer.parseInt(p[0]);
-               int m = Integer.parseInt(p[1]);
-               return h >= 0 && h <= 23 && m >= 0 && m <= 59 ? (double)h + (double)m / (double)60.0F : (double)-1.0F;
-            }
+         if (s.matches("^(0?[0-9]|1[0-9]|2[0-3])$")) {
+            return Double.parseDouble(s);
          }
-      } catch (Exception var5) {
-         return (double)-1.0F;
+         
+         if (s.matches("^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$")) {
+            String[] p = s.split(":");
+            int h = Integer.parseInt(p[0]);
+            int m = Integer.parseInt(p[1]);
+            return (double) h + (double) m / 60.0;
+         }
+         
+         return -1.0;
+      } catch (Exception e) {
+         return -1.0;
       }
    }
 

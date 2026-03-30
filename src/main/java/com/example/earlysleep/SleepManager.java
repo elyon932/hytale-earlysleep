@@ -128,115 +128,117 @@ public class SleepManager {
             }
          }
       } catch (Exception var8) {
+            System.err.println("[EarlySleep] Erro na Reflexão de SleepConfig: " + var8.getMessage());
+            var8.printStackTrace(System.err);
       }
 
    }
 
    private void checkSleepCycles() {
-      Universe universe = Universe.get();
-      if (universe != null) {
-         this.lastWorldSleepingCount.keySet().retainAll(universe.getWorlds().values());
+    Universe universe = Universe.get();
+    if (universe != null) {
+        this.lastWorldSleepingCount.keySet().retainAll(universe.getWorlds().values());
+        for (World world : universe.getWorlds().values()) {
+            world.execute(() -> {
+                this.checkPlayerWakeUpEffects(world);
+                this.checkWorldSleep(world);
+            });
+        }
+    }
+}
+   private void checkPlayerWakeUpEffects(World world) {
+    try {
+        EntityStore entityStore = world.getEntityStore();
+        if (entityStore == null) return;
+        Store<EntityStore> store = entityStore.getStore();
 
-         for(World world : universe.getWorlds().values()) {
-            world.execute(() -> this.checkWorldSleep(world));
-         }
-
-      }
-   }
-
-   private void checkWorldSleep(World world) {
-      try {
-         EntityStore entityStore = world.getEntityStore();
-         if (entityStore == null) {
-            return;
-         }
-
-         Store<EntityStore> store = entityStore.getStore();
-         WorldTimeResource timeRes = (WorldTimeResource)store.getResource(WorldTimeResource.getResourceType());
-         if (timeRes == null) {
-            return;
-         }
-
-         LocalDateTime now = LocalDateTime.ofInstant(timeRes.getGameTime(), ZoneOffset.UTC);
-         double currentHour = (double)now.getHour() + (double)now.getMinute() / (double)60.0F;
-         boolean isNightTime = currentHour >= this.sleepStart || currentHour < this.wakeUpTime;
-         if (!isNightTime) {
-            return;
-         }
-
-         Collection<PlayerRef> players = world.getPlayerRefs();
-         Set<UUID> currentUuids = new HashSet();
-
-         for(PlayerRef p : players) {
-            currentUuids.add(p.getUuid());
-         }
-
-         this.lastState.keySet().retainAll(currentUuids);
-         WorldSomnolence worldSom = (WorldSomnolence)store.getResource(WorldSomnolence.getResourceType());
-         if (worldSom == null || worldSom.getState() instanceof WorldSlumber) {
-            return;
-         }
-
-         int totalOnline = players.size();
-         if (totalOnline == 0) {
-            return;
-         }
-
-         int sleepingCount = 0;
-         StringBuilder awakePlayers = new StringBuilder();
-         long currentDelay = this.sleepDelay == -1L ? (this.getGlobalPlayerCount() == 1 ? 4000L : 0L) : this.sleepDelay;
-
-         for(PlayerRef p : players) {
+        for (PlayerRef p : world.getPlayerRefs()) {
             Ref<EntityStore> ref = p.getReference();
             if (ref != null) {
-               PlayerSomnolence som = (PlayerSomnolence)store.getComponent(ref, PlayerSomnolence.getComponentType());
-               if (som != null && som.getSleepState() != null) {
-                  Class<?> currentClass = som.getSleepState().getClass();
-                  Class<?> previousClass = (Class)this.lastState.put(p.getUuid(), currentClass);
-                  if (this.sleepEffectsEnabled && previousClass != null && previousClass != currentClass && currentClass == PlayerSleep.MorningWakeUp.class) {
-                     this.applySleepBuffs(ref, store);
-                  }
+                PlayerSomnolence som = (PlayerSomnolence) store.getComponent(ref, PlayerSomnolence.getComponentType());
+                if (som != null && som.getSleepState() != null) {
+                    Class<?> currentClass = som.getSleepState().getClass();
+                    Class<?> previousClass = this.lastState.put(p.getUuid(), currentClass);
 
-                  boolean isSleeping = false;
-                  if (som.getSleepState() instanceof PlayerSleep.Slumber) {
-                     isSleeping = true;
-                  } else {
-                     PlayerSleep var25 = som.getSleepState();
-                     if (var25 instanceof PlayerSleep.NoddingOff) {
-                        PlayerSleep.NoddingOff nodding = (PlayerSleep.NoddingOff)var25;
-                        if (Instant.now().isAfter(nodding.realTimeStart().plusMillis(currentDelay))) {
-                           isSleeping = true;
-                        }
-                     }
-                  }
-
-                  if (isSleeping) {
-                     ++sleepingCount;
-                  } else {
-                     if (awakePlayers.length() > 0) {
-                        awakePlayers.append(", ");
-                     }
-
-                     awakePlayers.append(p.getUsername());
-                  }
-               }
+                    if (this.sleepEffectsEnabled && previousClass != null && previousClass != currentClass && currentClass == PlayerSleep.MorningWakeUp.class) {
+                        this.applySleepBuffs(ref, store);
+                    }
+                }
             }
-         }
+        }
+    } catch (Exception e) {
+        e.printStackTrace(System.err);
+    }
+}
 
-         int required = this.sleepThreshold.endsWith("%") ? (int)Math.ceil((double)(Integer.parseInt(this.sleepThreshold.replace("%", "")) * totalOnline) / (double)100.0F) : Integer.parseInt(this.sleepThreshold);
-         int lastCount = (Integer)this.lastWorldSleepingCount.getOrDefault(world, 0);
-         if (totalOnline > 1 && sleepingCount > lastCount) {
+   private void checkWorldSleep(World world) {
+    try {
+        EntityStore entityStore = world.getEntityStore();
+        if (entityStore == null) return;
+        Store<EntityStore> store = entityStore.getStore();
+        
+        WorldTimeResource timeRes = (WorldTimeResource) store.getResource(WorldTimeResource.getResourceType());
+        if (timeRes == null) return;
+
+        LocalDateTime now = LocalDateTime.ofInstant(timeRes.getGameTime(), ZoneOffset.UTC);
+        double currentHour = (double) now.getHour() + (double) now.getMinute() / 60.0;
+        
+        // Bloqueio de horário: Só permite o processamento do sono se estiver no horário configurado
+        boolean isNightTime = currentHour >= this.sleepStart || currentHour < this.wakeUpTime;
+        if (!isNightTime) return;
+
+        WorldSomnolence worldSom = (WorldSomnolence) store.getResource(WorldSomnolence.getResourceType());
+        if (worldSom == null || worldSom.getState() instanceof WorldSlumber) return;
+
+        Collection<PlayerRef> players = world.getPlayerRefs();
+        int totalOnline = players.size();
+        if (totalOnline == 0) return;
+
+        int sleepingCount = 0;
+        StringBuilder awakePlayers = new StringBuilder();
+        long currentDelay = this.sleepDelay == -1L ? (this.getGlobalPlayerCount() == 1 ? 4000L : 0L) : this.sleepDelay;
+
+        for (PlayerRef p : players) {
+            Ref<EntityStore> ref = p.getReference();
+            if (ref != null) {
+                PlayerSomnolence som = (PlayerSomnolence) store.getComponent(ref, PlayerSomnolence.getComponentType());
+                if (som != null && som.getSleepState() != null) {
+                    boolean isSleeping = false;
+                    if (som.getSleepState() instanceof PlayerSleep.Slumber) {
+                        isSleeping = true;
+                    } else if (som.getSleepState() instanceof PlayerSleep.NoddingOff) {
+                        PlayerSleep.NoddingOff nodding = (PlayerSleep.NoddingOff) som.getSleepState();
+                        if (Instant.now().isAfter(nodding.realTimeStart().plusMillis(currentDelay))) {
+                            isSleeping = true;
+                        }
+                    }
+
+                    if (isSleeping) {
+                        ++sleepingCount;
+                    } else {
+                        if (awakePlayers.length() > 0) awakePlayers.append(", ");
+                        awakePlayers.append(p.getUsername());
+                    }
+                }
+            }
+        }
+
+        int required = this.sleepThreshold.endsWith("%") ? (int) Math.ceil((double) (Integer.parseInt(this.sleepThreshold.replace("%", "")) * totalOnline) / 100.0) : Integer.parseInt(this.sleepThreshold);
+        int lastCount = this.lastWorldSleepingCount.getOrDefault(world, 0);
+        
+        if (totalOnline > 1 && sleepingCount > lastCount) {
             SleepManagerCommand.broadcastSleepStatus(players, sleepingCount, required, awakePlayers.toString());
-         }
-
-         this.lastWorldSleepingCount.put(world, sleepingCount);
-         if (sleepingCount >= required && sleepingCount > 0) {
+        }
+        
+        this.lastWorldSleepingCount.put(world, sleepingCount);
+        
+        if (sleepingCount >= required && sleepingCount > 0) {
             this.triggerSlumber(store, world);
-         }
-      } catch (Exception var26) {
-      }
-
-   }
+        }
+    } catch (Exception e) {
+        e.printStackTrace(System.err);
+    }
+}
 
    private void applySleepBuffs(Ref<EntityStore> ref, Store<EntityStore> store) {
       EntityStatMap stats = (EntityStatMap)store.getComponent(ref, EntityStatMap.getComponentType());
@@ -257,12 +259,12 @@ public class SleepManager {
             effectController.addEffect(ref, staminaRegen, 5.0F, OverlapBehavior.OVERWRITE, store);
          }
       }
-
    }
 
    private void triggerSlumber(Store<EntityStore> store, World world) {
       WorldTimeResource timeRes = (WorldTimeResource)store.getResource(WorldTimeResource.getResourceType());
       if (timeRes != null) {
+         System.err.println("[EarlySleep] Falha ao disparar Slumber: WorldTimeResource é nulo.");
          Instant wakeUpInstant = LocalDateTime.ofInstant(timeRes.getGameTime(), ZoneOffset.UTC).toLocalDate().plusDays(1L).atTime((int)this.wakeUpTime, (int)(this.wakeUpTime % (double)1.0F * (double)60.0F)).toInstant(ZoneOffset.UTC);
          timeRes.setGameTime(wakeUpInstant, world, store);
 
