@@ -6,9 +6,8 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-3.0.6-brightgreen?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
-![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.0.7-brightgreen?style=for-the-badge)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 </div>
 
@@ -110,7 +109,7 @@ libs/HytaleServer.jar
 ## Technical Notes
 
 - The Hytale server jar is excluded due to size and licensing constraints
-- Reflection is used to modify internal behavior, which may break with future updates
+- Reflection is used to modify internal behavior and may break with future game updates
 
 ## Changelog
 
@@ -121,7 +120,3 @@ libs/HytaleServer.jar
 
 **Elyon Oliveira dos Santos**  
 Software Developer
-
-## License
-
-This project is licensed under the MIT License.
