@@ -6,8 +6,9 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-3.0.7-brightgreen?style=for-the-badge)
+![Version](https://img.shields.io/github/v/release/elyon932/hytale-earlysleep?style=for-the-badge&color=brightgreen)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+[![CI](https://github.com/elyon932/hytale-earlysleep/actions/workflows/ci.yml/badge.svg)](https://github.com/elyon932/hytale-earlysleep/actions)
 
 </div>
 
@@ -110,6 +111,7 @@ libs/HytaleServer.jar
 
 - The Hytale server jar is excluded due to size and licensing constraints
 - Reflection is used to modify internal behavior and may break with future game updates
+- Includes unit tests for core logic and command validation
 
 ## Changelog
 
