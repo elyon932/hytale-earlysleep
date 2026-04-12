@@ -8,7 +8,7 @@
 
 ![Version](https://img.shields.io/github/v/release/elyon932/hytale-earlysleep?style=for-the-badge&color=brightgreen)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
-[![CI](https://github.com/elyon932/hytale-earlysleep/actions/workflows/ci.yml/badge.svg)](https://github.com/elyon932/hytale-earlysleep/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/elyon932/hytale-earlysleep/ci.yml?branch=main&style=for-the-badge)](https://github.com/elyon932/hytale-earlysleep/actions/workflows/ci.yml)
 
 </div>
 
